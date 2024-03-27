@@ -1,0 +1,19 @@
+PROGRAMS = wmc
+MANPAGES = wmc.man.in
+UNIX_LIBS = $(GETTEXTPO_LIBS)
+
+C_SRCS = \
+	lang.c \
+	mcl.c \
+	po.c \
+	utils.c \
+	wmc.c \
+	write.c
+
+BISON_SRCS = mcy.y
+
+wmc_EXTRADEFS = \
+	-DNLSDIR="\"${nlsdir}\"" \
+	-DBIN_TO_NLSDIR=\"`${MAKEDEP} -R ${bindir} ${nlsdir}`\"
+
+INSTALL_DEV = $(PROGRAMS)

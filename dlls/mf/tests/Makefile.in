@@ -1,0 +1,8 @@
+TESTDLL   = mf.dll
+IMPORTS   = mf mfplat dmoguids mfuuid strmiids uuid wmcodecdspuuid ole32 user32 propsys msdmo
+
+C_SRCS = \
+	mf.c \
+	transform.c
+
+RC_SRCS = resource.rc

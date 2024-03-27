@@ -1,0 +1,10 @@
+MODULE    = dwmapi.dll
+IMPORTS   = user32
+IMPORTLIB = dwmapi
+
+EXTRADLLFLAGS = -Wb,--prefer-native
+
+C_SRCS = \
+	dwmapi_main.c
+
+RC_SRCS = version.rc

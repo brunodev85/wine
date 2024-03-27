@@ -567,6 +567,7 @@ SOURCES = \
 	ntdef.h \
 	ntdsapi.h \
 	ntgdi.h \
+	ntifs.h \
 	ntlsa.h \
 	ntquery.h \
 	ntsecapi.h \

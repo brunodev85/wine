@@ -105,6 +105,7 @@ static WCHAR start_label[50];
 
 static struct icon *balloon_icon;
 static HWND balloon_window;
+static HICON start_icon;
 
 #define MIN_DISPLAYED 8
 #define ICON_BORDER  2
@@ -658,8 +659,17 @@ static void paint_taskbar_button( const DRAWITEMSTRUCT *dis )
         flags |= win->active ? DC_ACTIVE : DC_INBUTTON;
         DrawCaptionTempW( win->hwnd, dis->hDC, &rect, 0, 0, NULL, flags );
     }
-    else  /* start button */
-        DrawCaptionTempW( 0, dis->hDC, &rect, 0, 0, start_label, flags | DC_INBUTTON | DC_ICON );
+    else /* start button */
+    {
+        POINT point;
+        
+        point.x = rect.left + 2;
+        point.y = (rect.bottom + rect.top - 16) / 2;
+        DrawIconEx( dis->hDC, point.x, point.y, start_icon, 16, 16, 0, 0, DI_NORMAL );            
+        rect.left = point.x + 16;
+        
+        DrawCaptionTempW( 0, dis->hDC, &rect, 0, 0, start_label, flags | DC_INBUTTON );
+    }
 }
 
 static void click_taskbar_button( HWND button )
@@ -934,7 +944,8 @@ void initialize_systray( HMODULE graphics_driver, BOOL using_root, BOOL arg_enab
         WINE_ERR("Could not create tray window\n");
         return;
     }
-
+    
+    ExtractIconExA( "shell32.dll", -40, NULL, &start_icon, 1 );
     LoadStringW( NULL, IDS_START_LABEL, start_label, ARRAY_SIZE( start_label ));
 
     add_taskbar_button( 0 );

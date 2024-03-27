@@ -298,7 +298,7 @@ static WCHAR *append_path( const WCHAR *path, const WCHAR *filename, int len_fil
     return ret;
 }
 
-static IShellLinkW *load_shelllink( const WCHAR *path )
+IShellLinkW *load_shelllink( const WCHAR *path )
 {
     HRESULT hr;
     IShellLinkW *link;
@@ -324,7 +324,7 @@ static IShellLinkW *load_shelllink( const WCHAR *path )
     return link;
 }
 
-static HICON extract_icon( IShellLinkW *link )
+HICON extract_icon( IShellLinkW *link, BOOL large_icon )
 {
     WCHAR tmp_path[MAX_PATH], icon_path[MAX_PATH], target_path[MAX_PATH];
     HICON icon = NULL;
@@ -334,13 +334,13 @@ static HICON extract_icon( IShellLinkW *link )
     IShellLinkW_GetIconLocation( link, tmp_path, MAX_PATH, &index );
     ExpandEnvironmentStringsW( tmp_path, icon_path, MAX_PATH );
 
-    if (icon_path[0]) ExtractIconExW( icon_path, index, &icon, NULL, 1 );
+    if (icon_path[0]) ExtractIconExW( icon_path, index, large_icon ? &icon : NULL, !large_icon ? &icon : NULL, 1 );
     if (!icon)
     {
         tmp_path[0] = 0;
         IShellLinkW_GetPath( link, tmp_path, MAX_PATH, NULL, SLGP_RAWPATH );
         ExpandEnvironmentStringsW( tmp_path, target_path, MAX_PATH );
-        ExtractIconExW( target_path, index, &icon, NULL, 1 );
+        ExtractIconExW( target_path, index, large_icon ? &icon : NULL, !large_icon ? &icon : NULL, 1 );
     }
     return icon;
 }
@@ -383,7 +383,7 @@ static BOOL add_launcher( const WCHAR *folder, const WCHAR *filename, int len_fi
     if (!(launcher->path = append_path( folder, filename, len_filename ))) goto error;
     if (!(link = load_shelllink( launcher->path ))) goto error;
 
-    launcher->icon = extract_icon( link );
+    launcher->icon = extract_icon( link, TRUE );
     launcher->title = build_title( filename, len_filename );
     IShellLinkW_Release( link );
     if (launcher->icon && launcher->title)
@@ -1090,6 +1090,7 @@ void manage_desktop( WCHAR *arg )
         }
         SetThreadDesktop( desktop );
     }
+    else ExitProcess( 0 );
 
     UuidCreate( &guid );
     TRACE( "display guid %s\n", debugstr_guid(&guid) );
@@ -1108,7 +1109,7 @@ void manage_desktop( WCHAR *arg )
         desktop_orig_wndproc = (WNDPROC)SetWindowLongPtrW( hwnd, GWLP_WNDPROC,
             (LONG_PTR)desktop_wnd_proc );
         using_root = !desktop || !create_desktop( graphics_driver, name, width, height );
-        SendMessageW( hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIconW( 0, MAKEINTRESOURCEW(OIC_WINLOGO)));
+        
         if (name) set_desktop_window_title( hwnd, name );
         SetWindowPos( hwnd, 0, GetSystemMetrics(SM_XVIRTUALSCREEN), GetSystemMetrics(SM_YVIRTUALSCREEN),
                       GetSystemMetrics(SM_CXVIRTUALSCREEN), GetSystemMetrics(SM_CYVIRTUALSCREEN),

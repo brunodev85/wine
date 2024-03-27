@@ -80,6 +80,7 @@ static const struct object_ops hook_table_ops =
     no_add_queue,                 /* add_queue */
     NULL,                         /* remove_queue */
     NULL,                         /* signaled */
+    NULL,                         /* get_esync_fd */
     NULL,                         /* satisfied */
     no_signal,                    /* signal */
     no_get_fd,                    /* get_fd */
@@ -372,14 +373,37 @@ unsigned int get_active_hooks(void)
 }
 
 /* return the thread that owns the first global hook */
-struct thread *get_first_global_hook( int id )
+struct thread *get_first_global_hook( int id, thread_id_t *thread_id, client_ptr_t *proc )
 {
     struct hook *hook;
     struct hook_table *global_hooks = get_global_hooks( current );
 
     if (!global_hooks) return NULL;
     if (!(hook = get_first_valid_hook( global_hooks, id - WH_MINHOOK, EVENT_MIN, 0, 0, 0 ))) return NULL;
+    *thread_id = hook->owner->id;
+    *proc = hook->proc;
     return hook->owner;
+}
+
+void disable_hung_hook( struct desktop *desktop, int id, thread_id_t thread_id, client_ptr_t proc )
+{
+    struct hook_table *global_hooks = desktop->global_hooks;
+    int index = id - WH_MINHOOK;
+    struct hook *hook;
+
+    if (!global_hooks || !proc) return;
+
+    hook = get_first_hook( global_hooks, index );
+
+    while (hook)
+    {
+        if (hook->proc == proc && hook->owner->id == thread_id)
+        {
+            hook->proc = 0;
+            return;
+        }
+        hook = HOOK_ENTRY( list_next( &global_hooks->hooks[index], &hook->chain ) );
+    }
 }
 
 /* set a window hook */

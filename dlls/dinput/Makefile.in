@@ -1,6 +1,6 @@
 MODULE    = dinput.dll
 IMPORTLIB = dinput
-IMPORTS   = dinput dxguid uuid comctl32 ole32 user32 advapi32 hid setupapi
+IMPORTS   = dinput dxguid uuid comctl32 ole32 user32 advapi32 hid setupapi ws2_32
 EXTRADEFS = -DDIRECTINPUT_VERSION=0x0700
 
 C_SRCS = \
@@ -11,7 +11,8 @@ C_SRCS = \
 	dinput_main.c \
 	joystick_hid.c \
 	keyboard.c \
-	mouse.c
+	mouse.c \
+	gamepad.c
 
 IDL_SRCS = dinput_classes.idl
 

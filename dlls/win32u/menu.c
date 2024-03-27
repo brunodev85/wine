@@ -2051,7 +2051,7 @@ static void calc_menu_item_size( HDC hdc, struct menu_item *item, HWND owner, IN
             /* Keep the size of the bitmap in callback mode to be able
              * to draw it correctly */
             item->bmpsize = size;
-            menu->textOffset = max( menu->textOffset, size.cx );
+            menu->textOffset = !(menu->dwStyle & MNS_CHECKORBMP) ? max( menu->textOffset, size.cx ) : 4;
             item->rect.right += size.cx + 2;
             item_height = size.cy + 2;
         }
@@ -2232,7 +2232,6 @@ static void draw_bitmap_item( HWND hwnd, HDC hdc, struct menu_item *item, const 
     HBITMAP bmp_to_draw = item->hbmpItem;
     HBITMAP bmp = bmp_to_draw;
     BITMAP bm;
-    DWORD rop;
     HDC mem_hdc;
 
     /* Check if there is a magic menu item associated with this item */
@@ -2353,10 +2352,9 @@ got_bitmap:
     /* handle fontsize > bitmap_height */
     top = (h>bm.bmHeight) ? rect->top + (h - bm.bmHeight) / 2 : rect->top;
     left=rect->left;
-    rop= ((item->fState & MF_HILITE) && !IS_MAGIC_BITMAP(bmp_to_draw)) ? NOTSRCCOPY : SRCCOPY;
     if ((item->fState & MF_HILITE) && item->hbmpItem)
         NtGdiGetAndSetDCDword( hdc, NtGdiSetBkColor, get_sys_color( COLOR_HIGHLIGHT ), NULL );
-    NtGdiBitBlt( hdc, left, top, w, h, mem_hdc, bmp_xoffset, 0, rop, 0, 0 );
+    NtGdiBitBlt( hdc, left, top, w, h, mem_hdc, bmp_xoffset, 0, SRCCOPY, 0, 0 );
     NtGdiDeleteObjectApp( mem_hdc );
 }
 
@@ -2637,9 +2635,8 @@ static void draw_menu_item( HWND hwnd, struct menu *menu, HWND owner, HDC hdc,
         UINT format = menu_bar ?
             DT_CENTER | DT_VCENTER | DT_SINGLELINE :
             DT_LEFT | DT_VCENTER | DT_SINGLELINE;
-
-        if (!(menu->dwStyle & MNS_CHECKORBMP))
-            rect.left += menu->textOffset;
+            
+        rect.left += menu->textOffset;
 
         if (item->fState & MFS_DEFAULT)
         {

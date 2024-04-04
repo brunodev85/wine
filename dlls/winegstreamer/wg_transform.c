@@ -419,8 +419,8 @@ NTSTATUS wg_transform_create(void *args)
              */
             transform->input_max_length = 16;
             transform->output_plane_align = 15;
-            if (!(element = create_element("h264parse", "base"))
-                    || !transform_append_element(transform, element, &first, &last))
+            if ((element = create_element("h264parse", "base"))
+                    && !transform_append_element(transform, element, &first, &last))
                 goto out;
             /* fallthrough */
         case WG_MAJOR_TYPE_AUDIO_MPEG1:
